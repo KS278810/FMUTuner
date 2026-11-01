@@ -1,0 +1,30 @@
+/* Design tokens of the instrument panel. Dark only, by decision D41 of SPEC.md. */
+:root {
+  color-scheme: dark;
+  --bg: #06080b;
+  --panel: #0b0f14;
+  --panel-2: #111820;
+  --line: rgba(255, 255, 255, .08);
+  --line-strong: rgba(255, 255, 255, .18);
+  --text: #e6edf3;
+  --text-mute: #8793a1;
+  --text-heading: #ffffff;
+  --accent: #35e0c0;
+  --accent-soft: rgba(53, 224, 192, .12);
+  --accent-glow: rgba(53, 224, 192, .28);
+  --on-accent: #04110e;
+  --warn: #ffb454;
+  --danger: #ff6b6b;
+  --danger-soft: rgba(255, 107, 107, .10);
+
+  --font-sans: system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, "Liberation Mono", monospace;
+
+  --radius-s: 6px;
+  --radius-m: 10px;
+  --radius-l: 14px;
+  --radius-full: 9999px;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 150ms;
+  --dur-base: 320ms;
+}

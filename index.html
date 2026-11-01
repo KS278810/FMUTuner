@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="color-scheme" content="dark" />
+<title>FMUTuner</title>
+<link rel="stylesheet" href="static/css/tokens.css" />
+<link rel="stylesheet" href="static/css/app.css" />
+<link rel="stylesheet" href="static/css/demo.css" />
+<meta name="description" content="FMUTuner demo, a replay of one recorded FMU fit." />
+</head>
+<body>
+<div class="shell">
+  <!-- Fixed DOM. app.mjs fills the tables, the charts and the texts of these elements. -->
+  <header class="top">
+    <span class="led" id="led" data-tone="mute"></span>
+    <h1 class="brand" aria-label="FMUTuner">
+      <svg class="logo-mark" viewBox="0 0 48 48" aria-hidden="true">
+        <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#35e0c0"/><stop offset="1" stop-color="#6ea8ff"/></linearGradient></defs>
+        <path d="M24 3 42 13.5v21L24 45 6 34.5v-21Z" fill="none" stroke="url(#lg)" stroke-width="2.6" stroke-linejoin="round"/>
+        <path d="M15 17l8 7-8 7M25 17l8 7-8 7" fill="none" stroke="url(#lg)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="wordmark" aria-hidden="true"><span class="logo-fmu">FMU</span><span class="logo-maker">Tuner</span></span>
+    </h1>
+    <span class="spacer"></span>
+    <div class="seg" id="lang-toggle" role="group" data-i18n-aria-label="lang.toggle_label">
+      <button type="button" data-lang="ja" lang="ja">JA</button>
+      <button type="button" data-lang="en" lang="en">EN</button>
+    </div>
+  </header>
+
+  <main class="stage-row">
+    <section class="panel" id="panel-in" aria-labelledby="label-in">
+      <h2 class="panel-label" id="label-in" data-i18n="pane.in"></h2>
+      <div class="panel-body">
+        <ol class="stages steps" id="steps">
+          <li class="stage" id="step-1" data-state="active"><span class="node"></span><span class="stage-name" data-i18n="step.fmu"></span></li>
+          <li class="stage" id="step-2" data-state="pending"><span class="node"></span><span class="stage-name" data-i18n="step.csv"></span></li>
+          <li class="stage" id="step-3" data-state="pending"><span class="node"></span><span class="stage-name" data-i18n="step.mapping"></span></li>
+        </ol>
+
+        <div class="model" id="model" hidden>
+          <span class="model-mark" id="icon-ok"></span>
+          <span class="model-name" id="model-name"></span>
+          <span class="chip" id="model-size"></span>
+          <button class="chip chip-btn" id="csv-chip" type="button" hidden><span id="icon-csv"></span><span id="csv-count"></span></button>
+          <span class="spacer"></span>
+          <button class="icon-btn small" id="clear-btn" type="button" data-i18n-aria-label="btn.clear">
+            <span id="icon-clear"></span>
+          </button>
+        </div>
+
+        <div class="drop" id="drop-zone">
+          <button class="drop-open" id="drop-open" type="button">
+            <span class="drop-ring"><span id="icon-upload"></span></span>
+            <span class="drop-title" id="drop-title"></span>
+          </button>
+        </div>
+        <input id="file-input" type="file" multiple accept=".fmu,.csv" style="display:none" data-i18n-aria-label="drop.fmu" />
+        <button class="example-mini" id="sample-btn" type="button"><span class="spin" aria-hidden="true"></span><span id="sample-label" data-i18n="example.button"></span></button>
+
+        <div class="tabs" id="in-tabs" role="tablist" hidden>
+          <button type="button" role="tab" data-tab="mapping" aria-selected="true" data-i18n="tab.mapping"></button>
+          <button type="button" role="tab" data-tab="chart" aria-selected="false" data-i18n="tab.chart"></button>
+          <button type="button" role="tab" data-tab="freq" aria-selected="false" data-i18n="tab.freq"></button>
+          <button type="button" role="tab" data-tab="range" aria-selected="false" data-i18n="tab.range"></button>
+          <button type="button" role="tab" data-tab="cond" aria-selected="false" data-i18n="tab.cond"></button>
+          <span class="spacer"></span>
+          <span class="rms" id="est"></span>
+          <span class="rms" id="rms"></span>
+        </div>
+        <fieldset class="panes" id="advanced" hidden>
+          <div class="pane" data-pane="mapping" id="mapping-box">
+            <div class="tbl-wrap">
+              <table class="tbl" id="mapping">
+                <thead><tr><th data-i18n="col.column"></th><th data-i18n="col.role"></th><th data-i18n="col.variable"></th><th data-i18n="col.scale"></th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <p class="note" id="mapping-note" hidden></p>
+          </div>
+          <div class="pane" data-pane="chart" hidden>
+            <div class="charts" id="charts"><div id="chart-list"></div></div>
+          </div>
+          <div class="pane" data-pane="freq" hidden><div id="in-freq"></div></div>
+          <div class="pane" data-pane="range" hidden>
+            <div class="bar-row">
+              <input id="set-filter" type="search" data-i18n-placeholder="set.filter" />
+              <button type="button" class="chip chip-btn" id="set-shown" data-i18n="set.shown"></button>
+              <button type="button" class="chip chip-btn" id="set-none" data-i18n="set.none"></button>
+              <span class="chip" id="set-count"></span>
+            </div>
+            <div class="tbl-wrap">
+              <table class="tbl" id="set-table">
+                <thead><tr><th data-i18n="adv.use"></th><th data-i18n="col.name"></th><th data-i18n="col.start"></th><th data-i18n="col.low"></th><th data-i18n="col.high"></th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="pane" data-pane="cond" hidden>
+            <div class="fields">
+              <label class="field"><span data-i18n="field.noise_a"></span><input id="noise-a" type="number" step="any" /></label>
+              <label class="field"><span data-i18n="field.noise_b"></span><input id="noise-b" type="number" step="any" /></label>
+              <label class="field"><span data-i18n="field.band_lo"></span><input id="band-lo" type="number" step="any" /></label>
+              <label class="field"><span data-i18n="field.band_hi"></span><input id="band-hi" type="number" step="any" /></label>
+              <label class="field" id="cs-field" hidden><span data-i18n="field.cs_substeps"></span><input id="cs-substeps" type="number" min="1" max="1000" step="1" /></label>
+              <label class="field"><span data-i18n="adv.max_iterations"></span><input id="set-iterations" type="number" min="1" step="1" /></label>
+              <label class="field"><span data-i18n="adv.max_parameters"></span><input id="set-parameters" type="number" min="1" step="1" /></label>
+            </div>
+            <label class="check"><input id="set-no-cv" type="checkbox" /><span data-i18n="adv.no_cv"></span></label>
+            <label class="check"><input id="set-no-gate" type="checkbox" /><span data-i18n="adv.no_gate"></span></label>
+          </div>
+        </fieldset>
+      </div>
+    </section>
+
+    <div class="mid" id="mid" data-flow="idle">
+      <span class="flow flow-left"></span>
+      <button class="run" id="run-btn" type="button" disabled>
+        <span id="icon-run"></span>
+        <span id="run-btn-label"></span>
+      </button>
+      <span class="flow flow-right"></span>
+    </div>
+
+    <section class="panel" id="panel-out" aria-labelledby="label-out">
+      <h2 class="panel-label" id="label-out" data-i18n="pane.out"></h2>
+      <div class="panel-body">
+        <div class="idle" id="out-empty" aria-hidden="true">
+          <ol class="stages ghost four">
+            <li class="stage" data-state="pending"><span class="node"></span><span class="stage-name" data-i18n="stage.screen"></span></li>
+            <li class="stage" data-state="pending"><span class="node"></span><span class="stage-name" data-i18n="stage.fit"></span></li>
+            <li class="stage" data-state="pending"><span class="node"></span><span class="stage-name" data-i18n="stage.cross_validation"></span></li>
+            <li class="stage" data-state="pending"><span class="node"></span><span class="stage-name" data-i18n="stage.write"></span></li>
+          </ol>
+        </div>
+
+        <div class="running" id="running" hidden>
+          <ol class="stages four" id="stages" aria-live="polite">
+            <li class="stage" id="stage-screen" data-state="pending"><span class="node"></span><span class="stage-name" data-i18n="stage.screen"></span></li>
+            <li class="stage" id="stage-fit" data-state="pending"><span class="node"></span><span class="stage-name" data-i18n="stage.fit"></span></li>
+            <li class="stage" id="stage-cross_validation" data-state="pending"><span class="node"></span><span class="stage-name" data-i18n="stage.cross_validation"></span></li>
+            <li class="stage" id="stage-write" data-state="pending"><span class="node"></span><span class="stage-name" data-i18n="stage.write"></span></li>
+          </ol>
+          <div class="bar" id="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span class="bar-fill" id="bar-fill"></span></div>
+          <p class="mute" id="log-line"></p>
+
+          <div class="done" id="out-done" hidden>
+            <div class="verdict" id="verdict" data-state="passed">
+              <span class="verdict-mark" id="verdict-mark"></span>
+              <span class="verdict-text" id="verdict-text"></span>
+              <span class="gate" id="gate-line"></span>
+            </div>
+            <ul class="flags" id="flags"></ul>
+          </div>
+
+          <div class="tabs" id="tabs" role="tablist">
+            <button type="button" role="tab" data-tab="overlay" aria-selected="false" data-i18n="tab.overlay" disabled></button>
+            <button type="button" role="tab" data-tab="freq" aria-selected="false" data-i18n="tab.freq" disabled></button>
+            <button type="button" role="tab" data-tab="residual" aria-selected="false" data-i18n="tab.residual" disabled></button>
+            <button type="button" role="tab" data-tab="params" aria-selected="true" data-i18n="tab.params"></button>
+          </div>
+          <div class="panes">
+            <div class="pane" data-pane="params">
+              <div class="cost" id="cost-curve" role="img" data-i18n-aria-label="out.cost"></div>
+              <div class="tbl-wrap">
+                <table class="tbl" id="params-table">
+                  <thead><tr><th data-i18n="col.name"></th><th data-i18n="col.start"></th><th id="col-now" data-i18n="col.now"></th><th id="col-applied" data-i18n="col.applied" hidden></th><th data-i18n="col.identified"></th></tr></thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+            <div class="pane" data-pane="overlay" hidden><div id="overlay"></div></div>
+            <div class="pane" data-pane="freq" hidden><div id="freq"></div></div>
+            <div class="pane" data-pane="residual" hidden><div id="residual"></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="panel-foot" id="download"></div>
+    </section>
+  </main>
+
+  <div class="banner" id="error-banner" role="alert" hidden>
+    <span id="error-message"></span>
+  </div>
+</div>
+
+<script type="module" src="static/js/app.mjs"></script>
+</body>
+</html>

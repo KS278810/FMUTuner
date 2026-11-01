@@ -1,0 +1,52 @@
+{
+ "Fexc_FrLh_X": [
+  "input",
+  "FrLh_F_x",
+  1.0
+ ],
+ "Acc_FrLh_X": [
+  "response",
+  "FrLh_a_x",
+  1.0
+ ],
+ "Fexc_FrLh_Z": [
+  "input",
+  "FrLh_F_z",
+  1.0
+ ],
+ "Acc_FrLh_Z": [
+  "response",
+  "FrLh_a_z",
+  1.0
+ ],
+ "Mexc_Rr_DS": [
+  "input",
+  "Rr_M_y",
+  1.0
+ ],
+ "Acc_Rr_Nose_Z": [
+  "response",
+  "Rr_nose_a_z",
+  1.0
+ ],
+ "Fexc_RrLh_X": [
+  "input",
+  "RrLh_F_x",
+  1.0
+ ],
+ "Acc_RrLh_X": [
+  "response",
+  "RrLh_a_x",
+  1.0
+ ],
+ "Fexc_RrLh_Z": [
+  "input",
+  "RrLh_F_z",
+  1.0
+ ],
+ "Acc_RrLh_Z": [
+  "response",
+  "RrLh_a_z",
+  1.0
+ ]
+}
